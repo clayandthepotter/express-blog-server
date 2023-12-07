@@ -60,14 +60,29 @@ const App = () => {
 	};
 
 	// create submit function
-	const handleSubmit = async (e) => {
+	const handleCreateSubmit = async (e) => {
 		e.preventDefault();
-		setNewPost({ ...newPost, id: Date.now() });
+		const createNewPost = {...newPost, id: Date.now()}
 		try {
 			// send a post request with new post in the request body
 			await axios.post(`${BASE_URL}/posts`, newPost);
 			// update client side content
-			setPosts([...posts, newPost]);
+			setPosts([...posts, createNewPost]);
+			// reset the new post state to blank
+			setNewPost({ id: 0, title: '', content: '', comments: [] });
+		} catch (error) {
+			console.error('Error adding post', error);
+		}
+	};
+
+	const handleEditSubmit = async (e) => {
+		e.preventDefault();
+		const editPost = { ...newPost, id: Date.now() };
+		try {
+			// send a post request with new post in the request body
+			await axios.post(`${BASE_URL}/posts`, newPost);
+			// update client side content
+			setPosts([...posts, editPost]);
 			// reset the new post state to blank
 			setNewPost({ id: 0, title: '', content: '', comments: [] });
 		} catch (error) {
@@ -80,22 +95,39 @@ const App = () => {
 			<h1>Blog Posts</h1>
 			<ul>
 				{posts.map((post) =>
-					(editingPost && editingPost.id === post.id) ? (
+					editingPost && editingPost.id === post.id ? (
 						<li key={post.id}>
-							{/*Need this to be a form*/}
-							<input
-								type='text'
-								placeholder={post.title}
-								value={editingPost.title}
-							/>
-							<textarea
-								placeholder={post.content}
-								value={editingPost.content}
-							/>
-							<button onClick={() => handleDelete(post.id)}>
-								Delete
-							</button>
-							<button onClick={() => handleEditPost()}>Edit</button>
+							<form
+								onSubmit={handleEditSubmit}
+								style={{ display: 'block' }}
+							>
+								<h3>Create new post</h3>
+								<input
+									style={{ display: 'block', marginBottom: '10px' }}
+									type='text'
+									placeholder='Title...'
+									value={newPost.title}
+									// when the value in the input field changes, update the title property of the newPost state
+									onChange={''}
+								/>
+								<textarea
+									style={{ display: 'block', marginBottom: '10px' }}
+									placeholder='Content...'
+									value={newPost.content}
+									onChange={(e) =>
+										setNewPost({
+											...newPost,
+											content: e.target.value,
+										})
+									}
+								/>
+								<button
+									type='submit'
+									style={{ display: 'block', marginBottom: '10px' }}
+								>
+									Submit
+								</button>
+							</form>
 						</li>
 					) : (
 						<li key={post.id}>
@@ -112,7 +144,7 @@ const App = () => {
 				)}
 			</ul>
 			<br />
-			<form onSubmit={() => handleSubmit()} style={{ display: 'block' }}>
+			<form onSubmit={handleCreateSubmit} style={{ display: 'block' }}>
 				<h3>Create new post</h3>
 				<input
 					style={{ display: 'block', marginBottom: '10px' }}
